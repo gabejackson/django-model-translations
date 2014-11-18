@@ -69,7 +69,6 @@ class TranslationAnnotationTest(TestCase):
         )
 
     def test_translations_and_fallback(self):
-        # Dynamic run-time fallback population of language fields
         qs = Article.translated_objects.fallback('de-ch').order_by('pk')
 
         self.assertQuerysetEqual(

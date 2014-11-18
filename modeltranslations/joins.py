@@ -12,7 +12,7 @@ class MultipleConstraintJoin(Join):
         where_node = qs.query.where
         where_node.relabel_aliases({self.table_name: self.table_alias})
         sql, params = compiler.compile(where_node)
-        sql = ' AND %s' % sql
+        sql = 'AND %s' % sql
         return sql, params
 
     def __eq__(self, other):
