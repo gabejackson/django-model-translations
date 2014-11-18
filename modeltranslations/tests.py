@@ -1,8 +1,5 @@
 from operator import attrgetter
-from django.db.models import Q
-
 from django.test import TestCase
-from modeltranslations.expressions import ConditionalJoin
 from modeltranslations.models import Article, ArticleTranslation
 
 
