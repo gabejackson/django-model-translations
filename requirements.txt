@@ -1,4 +1,4 @@
--e git+https://github.com/akaariai/django.git@7fdeaac08ec61540e4acc9d81ee365e65c84df5d#egg=Django-origin/annotate_join_cond
+-e git+https://github.com/akaariai/django.git@7fdeaac08ec61540e4acc9d81ee365e65c84df5d#egg=annotate_join_cond
 gnureadline==6.3.3
 ipdb==0.8
 ipython==2.3.1

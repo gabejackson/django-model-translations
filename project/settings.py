@@ -73,6 +73,11 @@ DATABASES = {
 
 LANGUAGE_CODE = 'en-us'
 
+LANGUAGES = (
+    ('en-us', 'English'),
+    ('de-ch', 'German'),
+)
+
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
