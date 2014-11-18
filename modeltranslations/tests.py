@@ -38,48 +38,6 @@ class TranslationAnnotationTest(TestCase):
             body='The new Django version is here!')
         self.at1_en.save()
 
-    def test_translations_and_fallback(self):
-        # Dynamic run-time fallback population of language fields
-        qs = Article.objects.annotate(
-            title=ConditionalJoin(
-                'articletranslation__title',
-                conditions=Q(articletranslation__lang='en-us')
-            ),
-            body=ConditionalJoin(
-                'articletranslation__body',
-                conditions=Q(articletranslation__lang='en-us')
-            )
-        ).annotate(
-            title_de=ConditionalJoin(
-                'articletranslation__title',
-                conditions=Q(articletranslation__lang='de-ch')
-            )
-        ).order_by('pk')
-
-        self.assertQuerysetEqual(
-            qs, [
-                'This is a title',
-                'Django is here',
-            ],
-            attrgetter('title')
-        )
-
-        self.assertQuerysetEqual(
-            qs, [
-                '',
-                'The new Django version is here!',
-            ],
-            attrgetter('body')
-        )
-
-        self.assertQuerysetEqual(
-            qs, [
-                'Das ist ein Titel',
-                'Django ist da',
-            ],
-            attrgetter('title_de')
-        )
-
     def test_translations(self):
         qs = Article.translated_objects.all().order_by('pk')
 
@@ -108,4 +66,32 @@ class TranslationAnnotationTest(TestCase):
                 'Django ist da',
             ],
             attrgetter('title')
+        )
+
+    def test_translations_and_fallback(self):
+        # Dynamic run-time fallback population of language fields
+        qs = Article.translated_objects.fallback('de-ch').order_by('pk')
+
+        self.assertQuerysetEqual(
+            qs, [
+                'This is a title',
+                'Django is here',
+            ],
+            attrgetter('title')
+        )
+
+        self.assertQuerysetEqual(
+            qs, [
+                '',
+                'The new Django version is here!',
+            ],
+            attrgetter('body')
+        )
+
+        self.assertQuerysetEqual(
+            qs, [
+                'Das ist ein Titel',
+                'Django ist da',
+            ],
+            attrgetter('title_fallback')
         )

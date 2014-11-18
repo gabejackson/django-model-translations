@@ -8,6 +8,7 @@ from modeltranslations.expressions import ConditionalJoin
 
 class TranslationManager(models.Manager):
     lang = None
+    fallback_lang = None
 
     def get_queryset(self):
         qs = super(TranslationManager, self).get_queryset()
@@ -32,14 +33,32 @@ class TranslationManager(models.Manager):
             )
             qs = qs.annotate(**annotation)
 
-        # Reset language to default
+        if self.fallback_lang:
+            lang_q_args = {'%s__lang' % target_related_name: self.fallback_lang}
+            for field in target_fields:
+                annotation = {}
+                annotation[field+'_fallback'] = ConditionalJoin(
+                    '%s__%s' % (target_related_name, field),
+                    conditions=Q(**lang_q_args)
+                )
+                qs = qs.annotate(**annotation)
+
+        # Reset language and fallback to avoid later queries using these
         self.lang = None
+        self.fallback_lang = None
 
         return qs
 
     def language(self, lang):
         if lang in dict(settings.LANGUAGES).keys():
             self.lang = lang
+        else:
+            raise Exception("Language `%s` is not in LANGUAGES. Available languages are %s" % (lang, dict(settings.LANGUAGES).keys()))
+        return self
+
+    def fallback(self, lang):
+        if lang in dict(settings.LANGUAGES).keys():
+            self.fallback_lang = lang
         else:
             raise Exception("Language `%s` is not in LANGUAGES. Available languages are %s" % (lang, dict(settings.LANGUAGES).keys()))
         return self
