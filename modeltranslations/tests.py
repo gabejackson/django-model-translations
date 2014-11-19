@@ -1,5 +1,6 @@
 from operator import attrgetter
 from django.test import TestCase
+from django.utils.translation import activate
 from modeltranslations.models import Article, ArticleTranslation
 
 
@@ -36,6 +37,7 @@ class TranslationAnnotationTest(TestCase):
         self.at1_en.save()
 
     def test_translations(self):
+        activate('en-us')
         qs = Article.translated_objects.all().order_by('pk')
 
         self.assertQuerysetEqual(
@@ -55,6 +57,7 @@ class TranslationAnnotationTest(TestCase):
         )
 
     def test_language_override(self):
+        activate('en-us')
         qs = Article.translated_objects.language('de-ch').all().order_by('pk')
 
         self.assertQuerysetEqual(
@@ -66,6 +69,7 @@ class TranslationAnnotationTest(TestCase):
         )
 
     def test_translations_and_fallback(self):
+        activate('en-us')
         qs = Article.translated_objects.fallback('de-ch').order_by('pk')
 
         self.assertQuerysetEqual(

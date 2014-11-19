@@ -25,6 +25,21 @@ class TranslationForeignKey(ForeignKey):
         if not filter(lambda field: field.name == 'lang', cls._meta.fields):
             cls.add_to_class('lang', CharField(max_length=20, db_index=True, name='lang', default=get_language, choices=settings.LANGUAGES))
         cls.translation_foreign_key_name = name
+
+        # This methods allows getting the cached translation field names from both cls and instance
+        def get_translation_field_names(cls):
+            if not cls._translation_fields:
+                for field in cls._meta.fields:
+                    if field.name in ('id', 'lang'):
+                        continue
+                    if field.name == cls.translation_foreign_key_name:
+                        continue
+                    cls._translation_fields.append(field.name)
+            return cls._translation_fields
+
+        setattr(cls, '_translation_fields', [])
+        setattr(cls, get_translation_field_names.__name__, classmethod(get_translation_field_names))
+
         super(TranslationForeignKey, self).contribute_to_class(cls, name)
 
     def contribute_to_related_class(self, cls, related):

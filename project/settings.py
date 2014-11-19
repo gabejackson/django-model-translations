@@ -36,6 +36,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
     'modeltranslations',
 )
 
@@ -71,11 +72,12 @@ DATABASES = {
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'de-ch'
 
 LANGUAGES = (
     ('en-us', 'English'),
     ('de-ch', 'German'),
+    ('it-it', 'Italian')
 )
 
 TIME_ZONE = 'UTC'
