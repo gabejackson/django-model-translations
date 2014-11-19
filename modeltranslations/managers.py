@@ -18,28 +18,33 @@ class TranslationManager(models.Manager):
         target_fields = self.translation_model.get_translation_field_names()
         target_related_name = self.translation_model._meta.model_name
 
-        # Create annotations of all fields
         if self.all_langs:
+            # Annotate all language entries
             for language in get_languages():
                 for field in target_fields:
-                    annotation = {}
-                    annotation[field+'_'+normalize_language_code(language)] = LanguageJoin(target_related_name, field, language)
+                    annotation = {
+                        field+'_'+normalize_language_code(language): LanguageJoin(target_related_name, field, language)
+                    }
                     qs = qs.annotate(**annotation)
             # Used to easily find which instances do not have any translation objects
             qs = qs.annotate(_num_translation_objects=Count(target_related_name))
         else:
+            # Annotate desired language entries
             for field in target_fields:
-                annotation = {}
-                annotation[field] = LanguageJoin(target_related_name, field, self._get_query_language())
+                annotation = {
+                    field: LanguageJoin(target_related_name, field, self._get_query_language())
+                }
                 qs = qs.annotate(**annotation)
 
             if self.fallback_lang:
+                # Annotate additional fallback language entries
                 for field in target_fields:
-                    annotation = {}
-                    annotation[field+'_fallback'] = LanguageJoin(target_related_name, field, self.fallback_lang)
+                    annotation = {
+                        field+'_fallback': LanguageJoin(target_related_name, field, self.fallback_lang)
+                    }
                     qs = qs.annotate(**annotation)
 
-        # Reset language and fallback to avoid later queries using these
+        # Reset attributes to avoid later queries reusing them
         self.lang = None
         self.fallback_lang = None
         self.all_langs = False

@@ -7,16 +7,20 @@ from modeltranslations.managers import TranslationManager
 
 class TranslationDescriptor(object):
     def __init__(self, name):
-        self.name = name.replace('get_', '')
+        self.name = name
+        self.hidden_name = '_'+name
 
     def __get__(self, instance, instance_type=None):
         if instance is None:
             return self
-        if getattr(instance, self.name):
-            return getattr(instance, self.name)
+        if getattr(instance, self.hidden_name):
+            return getattr(instance, self.hidden_name)
         if hasattr(instance, self.name+"_fallback"):
             return getattr(instance, self.name+"_fallback")
-        return None
+        return ''
+
+    def __set__(self, instance, value):
+        setattr(instance, self.hidden_name, value)
 
 
 class TranslationForeignKey(ForeignKey):
@@ -46,7 +50,7 @@ class TranslationForeignKey(ForeignKey):
 
         def add_translation_descriptors(field, model, cls):
             for f in related.model.get_translation_field_names():
-                setattr(cls, 'get_'+f, TranslationDescriptor(f))
+                setattr(cls, f, TranslationDescriptor(f))
 
         add_lazy_relation(cls, None, self.model, add_translation_descriptors)
 

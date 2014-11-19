@@ -83,7 +83,7 @@ class TranslationAnnotationTest(TestCase):
 
         self.assertQuerysetEqual(
             qs, [
-                '',
+                'Heute wurde publiziert, dass es einen neuen Titel gibt',
                 'The new Django version is here!',
             ],
             attrgetter('body')
