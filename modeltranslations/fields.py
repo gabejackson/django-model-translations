@@ -7,16 +7,16 @@ from modeltranslations.managers import TranslationManager
 
 class TranslationDescriptor(object):
     def __init__(self, name):
-        self.name = name
+        self.name = name.replace('get_', '')
 
     def __get__(self, instance, instance_type=None):
         if instance is None:
             return self
         if getattr(instance, self.name):
-            return self.name
-        if getattr(instance, self.name+"_fallback"):
+            return getattr(instance, self.name)
+        if hasattr(instance, self.name+"_fallback"):
             return getattr(instance, self.name+"_fallback")
-        raise Exception('no have dis')
+        return None
 
 
 class TranslationForeignKey(ForeignKey):
@@ -45,9 +45,8 @@ class TranslationForeignKey(ForeignKey):
         self.model._meta.unique_together = ((self.name, 'lang',),)
 
         def add_translation_descriptors(field, model, cls):
-            for f in model._meta.fields:
-                # FIXME: Filter out id, fk and such
-                setattr(cls, f.name, TranslationDescriptor(f.name))
+            for f in related.model.get_translation_field_names():
+                setattr(cls, 'get_'+f, TranslationDescriptor(f))
 
         add_lazy_relation(cls, None, self.model, add_translation_descriptors)
 

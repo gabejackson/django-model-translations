@@ -69,7 +69,7 @@ class TranslationAnnotationTest(TestCase):
             attrgetter('title')
         )
 
-    def test_translations_and_fallback(self):
+    def test_explicit_fallbacks(self):
         activate('en-us')
         qs = Article.translated_objects.fallback('de-ch').order_by('pk')
 
@@ -97,6 +97,26 @@ class TranslationAnnotationTest(TestCase):
             attrgetter('title_fallback')
         )
 
+    def test_implicit_fallbacks(self):
+        activate('en-us')
+        qs = Article.translated_objects.fallback('de-ch').filter(
+            title__icontains='This is a title'
+        ).order_by('pk')
+
+        self.assertQuerysetEqual(
+            qs, [
+                'This is a title',
+            ],
+            attrgetter('title')
+        )
+
+        self.assertQuerysetEqual(
+            qs, [
+                'Heute wurde publiziert, dass es einen neuen Titel gibt',
+            ],
+            attrgetter('body')
+        )
+
     def test_filter_on_language(self):
         activate('en-us')
         qs = Article.translated_objects.filter(title__icontains='is').order_by('pk')
@@ -118,20 +138,9 @@ class TranslationAnnotationTest(TestCase):
             attrgetter('title')
         )
 
-    def test_fallback(self):
-        activate('de-ch')
-        qs = Article.translated_objects.fallback('en-us').filter(
-            title__icontains='Das ist ein Titel'
-        ).order_by('pk')
-
-        self.assertQuerysetEqual(
-            qs, [
-                'Heute wurde publiziert, dass es einen neuen Titel gibt',
-            ],
-            attrgetter('body')
-        )
-
     def test_filter_on_fallback(self):
+        # Search for articles that have an english title containing "this does not exist"
+        # or a german title containing "das ist"
         activate('en-us')
         qs = Article.translated_objects.fallback('de-ch').filter(
             Q(title__icontains='this does not exist') |

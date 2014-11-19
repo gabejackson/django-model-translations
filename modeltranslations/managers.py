@@ -1,6 +1,6 @@
 # encoding: utf-8
 from django.db import models
-from django.db.models import Q, Count
+from django.db.models import Count
 from django.utils.translation import get_language
 from modeltranslations.expressions import LanguageJoin
 from modeltranslations.utils import normalize_language_code, get_languages
