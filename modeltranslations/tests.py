@@ -1,4 +1,5 @@
 from operator import attrgetter
+from django.db.models import Q
 from django.test import TestCase
 from django.utils.translation import activate
 from modeltranslations.models import Article, ArticleTranslation
@@ -94,4 +95,52 @@ class TranslationAnnotationTest(TestCase):
                 'Django ist da',
             ],
             attrgetter('title_fallback')
+        )
+
+    def test_filter_on_language(self):
+        activate('en-us')
+        qs = Article.translated_objects.filter(title__icontains='is').order_by('pk')
+        self.assertQuerysetEqual(
+            qs, [
+                'This is a title',
+                'Django is here',
+            ],
+            attrgetter('title')
+        )
+
+        activate('de-ch')
+        qs = Article.translated_objects.filter(title__icontains='is').order_by('pk')
+        self.assertQuerysetEqual(
+            qs, [
+                'Das ist ein Titel',
+                'Django ist da',
+            ],
+            attrgetter('title')
+        )
+
+    def test_fallback(self):
+        activate('de-ch')
+        qs = Article.translated_objects.fallback('en-us').filter(
+            title__icontains='Das ist ein Titel'
+        ).order_by('pk')
+
+        self.assertQuerysetEqual(
+            qs, [
+                'Heute wurde publiziert, dass es einen neuen Titel gibt',
+            ],
+            attrgetter('body')
+        )
+
+    def test_filter_on_fallback(self):
+        activate('en-us')
+        qs = Article.translated_objects.fallback('de-ch').filter(
+            Q(title__icontains='this does not exist') |
+            Q(title_fallback__icontains='das ist')
+        ).order_by('pk')
+
+        self.assertQuerysetEqual(
+            qs, [
+                'This is a title',
+            ],
+            attrgetter('title')
         )

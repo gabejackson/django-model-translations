@@ -12,12 +12,11 @@ class TranslationDescriptor(object):
     def __get__(self, instance, instance_type=None):
         if instance is None:
             return self
-        translation = getattr(instance, 'active_translation')
-        rel_obj = getattr(translation, self.name)
-        if rel_obj is None:
-            raise Exception('no have dis')
-        else:
-            return rel_obj
+        if getattr(instance, self.name):
+            return self.name
+        if getattr(instance, self.name+"_fallback"):
+            return getattr(instance, self.name+"_fallback")
+        raise Exception('no have dis')
 
 
 class TranslationForeignKey(ForeignKey):
