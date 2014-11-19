@@ -2,7 +2,7 @@
 from django.db import models
 from django.db.models import Q, Count
 from django.utils.translation import get_language
-from modeltranslations.expressions import ConditionalJoin
+from modeltranslations.expressions import LanguageJoin
 from modeltranslations.utils import normalize_language_code, get_languages
 
 
@@ -21,34 +21,22 @@ class TranslationManager(models.Manager):
         # Create annotations of all fields
         if self.all_langs:
             for language in get_languages():
-                lang_q_args = {'%s__lang' % target_related_name: language}
                 for field in target_fields:
                     annotation = {}
-                    annotation[field+'_'+normalize_language_code(language)] = ConditionalJoin(
-                        '%s__%s' % (target_related_name, field),
-                        conditions=Q(**lang_q_args)
-                    )
+                    annotation[field+'_'+normalize_language_code(language)] = LanguageJoin(target_related_name, field, language)
                     qs = qs.annotate(**annotation)
             # Used to easily find which instances do not have any translation objects
             qs = qs.annotate(_num_translation_objects=Count(target_related_name))
         else:
-            lang_q_args = {'%s__lang' % target_related_name: self._get_query_language()}
             for field in target_fields:
                 annotation = {}
-                annotation[field] = ConditionalJoin(
-                    '%s__%s' % (target_related_name, field),
-                    conditions=Q(**lang_q_args)
-                )
+                annotation[field] = LanguageJoin(target_related_name, field, self._get_query_language())
                 qs = qs.annotate(**annotation)
 
             if self.fallback_lang:
-                lang_q_args = {'%s__lang' % target_related_name: self.fallback_lang}
                 for field in target_fields:
                     annotation = {}
-                    annotation[field+'_fallback'] = ConditionalJoin(
-                        '%s__%s' % (target_related_name, field),
-                        conditions=Q(**lang_q_args)
-                    )
+                    annotation[field+'_fallback'] = LanguageJoin(target_related_name, field, self.fallback_lang)
                     qs = qs.annotate(**annotation)
 
         # Reset language and fallback to avoid later queries using these
